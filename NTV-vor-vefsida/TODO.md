@@ -31,3 +31,13 @@
 - [x] Laga til CSS á myForm/ æfa mig að nota Tailwind
 - [x] Kíkja aðeins á https://react.dev/reference/react/hooks
 - [x] Heimaverkefni fyrir 5. mars: breyta state í ref í Forminu
+
+# Tími 5 - More Hooks - Custom Hooks
+
+- [ ] Heimaverkefni fyrir 10. mars: Mega hook dót sjá TODO comments í https://github.com/CCP-2FaceMonkey/ntv-forritun-fk3-vor-2026/tree/main
+      svo ef ég hef tíma:
+- [ ] Halda áfram með Udemy
+      skoða:
+  - [ ] useCallback (með föll)
+  - [ ] useMemo (með value)
+  - [ ] useEffect
