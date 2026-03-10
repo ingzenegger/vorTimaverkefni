@@ -1,5 +1,7 @@
+///// HÉLT ÉG SKILDI ÞETTA, SKILDI ÞETTA EKKI. REYNDI AÐ FÁ GEMINI TIL AÐ HJÁLPA MÉR AÐ SKILJA ÞETTA, ONLY MADE IT MORE CONFUSING. MY BEST EFFORT WITH LIMITED TIME(helgin var out) - ER ALLT Í RUGLI BUT HAVE RUN OUT OF TIME FOR THIS RN. En ég gerði amk eitthvað af þessu...
+
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Field, FieldGroup } from "./ui/field";
+import { Field, FieldGroup, FieldSet } from "./ui/field";
 import { Input } from "./ui/input";
 import {
   Select,
@@ -13,15 +15,31 @@ import {
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import useDebounce from "./hooks/useDebounce";
+
+type FormValuesType = {
+  firstName: string;
+  lastName: string;
+  mobileNumber: string;
+  selected: string;
+  radioButton: string | null;
+};
+
+const INITIAL_VALUES: FormValuesType = {
+  firstName: "",
+  lastName: "",
+  mobileNumber: "",
+  selected: "",
+  radioButton: "false",
+};
 
 export default function MyForm() {
-  const firstName = useRef("");
-  const lastName = useRef("");
-  const email = useRef("");
-  const mobileNumber = useRef(0);
-  const selected = useRef("");
-  const approve = useRef(true);
+  // my state variables:
+  const [email, setEmail] = useState("");
+  const [values, setValues] = useState<FormValuesType>(INITIAL_VALUES);
+  // const [view, setView] = useState<"entry" | "form">("entry");
+
   const items = [
     { label: "Life of Brian", value: "brian" },
     { label: "Blackadder Season 3", value: "blackadder" },
@@ -30,28 +48,96 @@ export default function MyForm() {
     { label: "Ghostbusters", value: "ghostbusters" },
   ];
 
+  // // my button functions:
+  // const handleCreateNew = () => {
+  //   if (!email) return alert("enter email first!");
+  //   setValues(INITIAL_VALUES);
+  //   setView("form");
+  // };
+
+  // const handleLoad = () => {
+  //   if (!email) return alert("Enter email first!");
+  //   const savedData = localStorage.getItem(email);
+
+  //   if (savedData) {
+  //     setValues(JSON.parse(savedData));
+  //   } else {
+  //     alert("No data found for this email. Starting fresh!");
+  //     setValues(INITIAL_VALUES);
+  //   }
+  //   setView("form");
+  // };
+
+  const onInputChange = useCallback(
+    (key: keyof FormValuesType, value: string) => {
+      setValues((prev) => ({ ...prev, [key]: value }));
+    },
+    [],
+  );
+
+  // the debouncing (aka waiting for user to stop typing)
+  const debouncedValues = useDebounce(JSON.stringify(values), 1000);
+  const debouncedEmail = useDebounce(email, 1000);
+
+  // useEffect(() => {
+  //   if (view === "form" && email) {
+  //     localStorage.setItem(email, JSON.stringify(debouncedValues));
+  //     console.log("saved to localStorage for:", email);
+  //   }
+  // }, [debouncedValues, debouncedEmail, view]);
+
   const onSubmit = () => {
-    alert(
-      approve
-        ? `Hello ${firstName.current} ${lastName.current}, your email(${email.current}) and mobile number (${mobileNumber.current}) have now been added to a random trivia mailing list relating to ${selected.current}. `
-        : `Hello ${firstName.current} ${lastName.current}, by choosing "no" you have opted out of recieving random trivia to your email (${email.current}) and mobile number (${mobileNumber.current}) relating to ${selected.current}. `,
+    const { firstName } = values;
+    if (!email) return alert("Email is required!");
+    localStorage.setItem(email, JSON.stringify(values));
+    window.alert(
+      `Hello ${firstName}, your info has been stored linked to your email address ${email}`,
     );
   };
+  const loadEmailRef = useRef<HTMLInputElement>(null);
 
-  const resetValues = () => {
-    //this function is not really necessary as the button refreshes the page out of the box
-    //can use event.preventDefault() to override the out of the box functionality, but then would need to have an action that resets my placeholders, easy to manipulate with the string inputs, we would just set the placeholder for example for first name as {firstname.current} and declare it in the beginning as useRef("First name"), but with the mobile number and select we start having some more complicated issues I'm not ready to deal with... - other solutions would be to have no placeholders and use the labels instead to identify eact input, but that is not the look of the form we are copying here. ;
-    //If i just needed to reset the values of Ref however this would do it:
-    firstName.current = "";
-    lastName.current = "";
-    email.current = "";
-    mobileNumber.current = 0;
-    selected.current = "";
-    approve.current = true;
-  };
+  const onLoad = useCallback(() => {
+    if (loadEmailRef.current && loadEmailRef.current.value) {
+      const localStorageValue = localStorage.getItem(
+        loadEmailRef.current?.value,
+      );
+      if (localStorageValue) {
+        const parsedLocalStorageValue: FormValuesType =
+          JSON.parse(localStorageValue);
+        window.alert(parsedLocalStorageValue.firstName);
+        loadEmailRef.current.value = "";
+        setValues(parsedLocalStorageValue);
+      } else {
+        window.alert("Email not found");
+      }
+    } else {
+      window.alert("Some bug was found!");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (email && debouncedValues) {
+      localStorage.setItem(email, debouncedValues);
+      console.log("Auto-saved to localStorage");
+    }
+  }, [debouncedValues, debouncedEmail]);
+  // TODO: Write useEffect to repopulate the localstorage after debounce
+  // NOTE: The email has to be present for this to work
+
+  // TODO: If no email is provided, display only the email input, or some other alternative UX
 
   return (
     <div className="w-full max-w-md">
+      {/* {view === "entry" ? (
+        //screen one, returning just the email input
+      <div>
+        <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Button onClick={handleLoad}>Load</Button>
+        <Button onClick={handleCreateNew}>Create New</Button>
+      </div>
+       ) : (
+        //screen two, returning the actual form */}
+
       <Card className="bg-indigo-950">
         <CardHeader>
           <div className="flex gap-2 items-center">
@@ -61,47 +147,57 @@ export default function MyForm() {
           </div>
         </CardHeader>
         <CardContent>
-          <form>
-            <FieldGroup>
+          <FieldGroup>
+            <Field>
+              <Input
+                className="bg-white"
+                id="email"
+                type="email"
+                placeholder="Email"
+                ref={loadEmailRef}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Field>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                onSubmit();
+              }}
+            >
               <Field>
-                {/* <FieldLabel>First name:</FieldLabel> */}
                 <Input
                   className="bg-white"
-                  type="text"
+                  id="firstName"
                   placeholder="First name"
-                  onChange={(e) => (firstName.current = e.target.value)}
+                  // TODO: Set values to all input fields in the form
+                  value={values.firstName}
+                  onChange={(e) => onInputChange("firstName", e.target.value)}
                 />
               </Field>
               <Field>
-                {/* <FieldLabel>Last name:</FieldLabel> */}
                 <Input
                   className="bg-white"
-                  type="text"
+                  id="lastName"
                   placeholder="Last name"
-                  onChange={(e) => (lastName.current = e.target.value)}
+                  value={values.lastName}
+                  onChange={(e) => onInputChange("lastName", e.target.value)}
                 />
               </Field>
               <Field>
-                {/* <FieldLabel>Email:</FieldLabel> */}
-                <Input
-                  className="bg-white"
-                  type="email"
-                  placeholder="Email"
-                  onChange={(e) => (email.current = e.target.value)}
-                />
-              </Field>
-              <Field>
-                {/* <FieldLabel>Mobile number:</FieldLabel> */}
                 <Input
                   className="bg-white"
                   type="number"
                   placeholder="Mobile number"
+                  value={values.mobileNumber}
                   onChange={(e) =>
-                    (mobileNumber.current = Number(e.target.value))
+                    onInputChange("mobileNumber", e.target.value)
                   }
                 />
               </Field>
-              <Select onValueChange={(value) => (selected.current = value)}>
+              <Select
+                onValueChange={(value) => onInputChange("selected", value)}
+              >
                 <SelectTrigger className="w-full bg-white">
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
@@ -118,8 +214,8 @@ export default function MyForm() {
               </Select>
               <RadioGroup
                 className="flex text-white"
-                onValueChange={(value) => (approve.current = value === "true")}
-                value={approve.toString()}
+                onValueChange={(value) => onInputChange("radioButton", value)}
+                value={values.radioButton ?? "false"}
               >
                 <div className="flex items-center gap-3">
                   <Label htmlFor="option-one">Yes</Label>
@@ -139,6 +235,8 @@ export default function MyForm() {
                 </div>
               </RadioGroup>
               <Button
+                value="load"
+                type="submit"
                 onClick={onSubmit}
                 className="w-full bg-pink-600 text-white border border-black"
               >
@@ -151,14 +249,57 @@ export default function MyForm() {
               </div>
               <Button
                 className="w-full border border-pink-600"
-                onClick={resetValues}
+                // onClick={resetValues}
               >
                 CLEAR
               </Button>
-            </FieldGroup>
-          </form>
+            </form>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Please enter email address</CardTitle>
+              </CardHeader>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  onLoad();
+                }}
+              >
+                <FieldSet>
+                  <FieldGroup>
+                    <Field>
+                      <Input
+                        className="bg-white"
+                        id="email"
+                        type="email"
+                        ref={loadEmailRef}
+                        placeholder="email"
+                      />
+                    </Field>
+                  </FieldGroup>
+                </FieldSet>
+                <div>
+                  <Button
+                    value="load"
+                    type="submit"
+                    className="bg-green-500 p-4 roudned text-white uppercase"
+                  >
+                    Load
+                  </Button>
+                  <Button
+                    value="create new"
+                    type="submit"
+                    className="bg-green-500 p-4 roudned text-white uppercase"
+                  >
+                    Create new
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </FieldGroup>
         </CardContent>
       </Card>
+      {/* )} */}
     </div>
   );
 }
