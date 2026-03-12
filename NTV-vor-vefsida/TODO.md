@@ -36,7 +36,7 @@
 
 - [ ] Heimaverkefni fyrir 10. mars: Mega hook dót sjá TODO comments í https://github.com/CCP-2FaceMonkey/ntv-forritun-fk3-vor-2026/tree/main
       svo ef ég hef tíma:
-- [ ] Halda áfram með Udemy
+- [x] Halda áfram með Udemy
       skoða:
   - [ ] useCallback (með föll)
   - [ ] useMemo (með value)
@@ -44,5 +44,5 @@
 
 # Tími 6 - Scalable project architecture
 
-- [ ] Brjóta niður formið í fleiri búta
+- [x] Brjóta niður formið í fleiri búta
 - [x] Lesa https://asrulkadir.medium.com/3-folder-structures-in-react-ive-used-and-why-feature-based-is-my-favorite-e1af7c8e91ec
